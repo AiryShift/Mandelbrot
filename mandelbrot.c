@@ -9,6 +9,12 @@
 
 #define MAX_ITERATIONS 256
 
+static int isBounded(double x, double y);
+static void nextTerm(double *x, double *y, double firstX, double firstY);
+static void complexSquare(double *x, double *y);
+static double square(double x);
+static double root(double x);
+
 /*
 int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
@@ -27,7 +33,7 @@ int escapeSteps(double x, double y) {
     return iterations;
 }
 
-int isBounded(double x, double y) {
+static int isBounded(double x, double y) {
     int bounded = 1;
     if (root(square(x) + square(y)) >= 2) { // Distance formula
         bounded = 0;
@@ -35,13 +41,13 @@ int isBounded(double x, double y) {
     return bounded;
 }
 
-void nextTerm(double *x, double *y, double firstX, double firstY) {
+static void nextTerm(double *x, double *y, double firstX, double firstY) {
     complexSquare(x, y);
     *x += firstX;
     *y += firstY;
 }
 
-void complexSquare(double *x, double *y) {
+static void complexSquare(double *x, double *y) {
     // (x + yi)**2 = (x**2 - y**2) + 2xyi
     double tempX = *x;
     double tempY = *y;
@@ -49,10 +55,10 @@ void complexSquare(double *x, double *y) {
     *y = 2 * tempX * tempY;
 }
 
-double square(double x) {
+static double square(double x) {
     return pow(x, 2);
 }
 
-double root(double x) {
+static double root(double x) {
     return pow(x, 0.5);
 }

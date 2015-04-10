@@ -8,8 +8,3 @@
  */
 
 int escapeSteps(double x, double y);
-int isBounded(double x, double y);
-void nextTerm(double *x, double *y, double originalX, double originalY);
-void complexSquare(double *x, double *y);
-double square(double x);
-double root(double x);
