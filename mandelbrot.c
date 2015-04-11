@@ -21,12 +21,12 @@ static double square(double x);
 #define SIMPLE_SERVER_VERSION 1.0
 #define REQUEST_BUFFER_SIZE 1000
 #define DEFAULT_PORT 1917
-#define NUMBER_OF_PAGES_TO_SERVE 10
-// after serving this many pages the server will halt
+#define NUMBER_OF_PAGES_TO_SERVE 10 // server halts after serving this
 
-void serveBMP(int socket);
-int makeServerSocket(int portno);
-int waitForConnection(int serverSocket);
+static void serveHTML(int socket);
+static void serveBMP(int socket);
+static int makeServerSocket(int portno);
+static int waitForConnection(int serverSocket);
 
 // BMP
 #define BYTES_PER_PIXEL 3
@@ -42,7 +42,7 @@ int waitForConnection(int serverSocket);
 #define SIZE 512
 #define TOTAL_NUM_BYTES (SIZE*SIZE*BYTES_PER_PIXEL)
 
-void writeHeader(void);
+static void writeHeader(void);
 
 int main(int argc, char *argv[]) {
     printf("************************************\n");
@@ -83,8 +83,8 @@ int main(int argc, char *argv[]) {
     }
 
     // close the server connection after we are done- keep aust beautiful
-    printf ("** shutting down the server **\n");
-    close (serverSocket);
+    printf("** shutting down the server **\n");
+    close(serverSocket);
 
     return EXIT_SUCCESS;
 }
@@ -128,14 +128,31 @@ static double square(double x) {
     return pow(x, 2);
 }
 
-
-void serveBMP(int socket) {
+static void serveHTML(int socket) {
     char* message;
 
     // first send the http response header
-    message = "HTTP/1.0 200 OK\r\n"
-              "Content-Type: image/bmp\r\n"
-              "\r\n";
+    message =
+        "HTTP/1.0 200 Found\n"
+        "Content-Type: text/html\n"
+        "\n";
+    printf("about to send=> %s\n", message);
+    write(socket, message, strlen(message));
+
+    message =
+        "<!DOCTYPE html>\n"
+        "<script src=\"http://almondbread.cse.unsw.edu.au/tiles.js\"></script>"
+        "\n";
+    write(socket, message, strlen(message));
+}
+
+static void serveBMP(int socket) {
+    char* message;
+
+    // first send the http response header
+    message = "HTTP/1.0 200 OK\n"
+              "Content-Type: image/bmp\n"
+              "\n";
     printf("about to send=> %s\n", message);
     write(socket, message, strlen(message));
 
@@ -158,7 +175,7 @@ void serveBMP(int socket) {
 }
 
 // start the server listening on the specified port number
-int makeServerSocket(int portNumber) {
+static int makeServerSocket(int portNumber) {
     // create socket
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -198,7 +215,7 @@ int makeServerSocket(int portNumber) {
 
 // wait for a browser to request a connection,
 // returns the socket on which the conversation will take place
-int waitForConnection(int serverSocket) {
+static int waitForConnection(int serverSocket) {
     // listen for a connection
     const int serverMaxBacklog = 10;
     listen(serverSocket, serverMaxBacklog);
@@ -218,7 +235,7 @@ int waitForConnection(int serverSocket) {
     return(connectionSocket);
 }
 
-void writeHeader(void) {
+static void writeHeader(void) {
     // From chessboard activity
     /*
     unsigned short magicNumber = MAGIC_NUMBER;
