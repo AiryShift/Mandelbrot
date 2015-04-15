@@ -73,28 +73,31 @@ int main(int argc, char *argv[]) {
         bytesRead = read(connectionSocket, request, (sizeof request) - 1);
         assert(bytesRead >= 0);
         // were we able to read any data from the connection?
-        
+
+        // print entire request to the console
+        printf(" *** Received http request ***\n %s\n", request);
+
+        //send the browser a simple html page using http
+        printf(" *** Sending http response ***\n");
+   
         // harrison's magical URL grepper code
         char url[1024];
         sscanf(request, "GET %s HTTP/1.1\n", url);
         printf("\n%s\n", url);
         
         if (strcmp(url, "/" ) == 0) {
+            printf("Client is requesting the home page\n");
             serveHTML(connectionSocket);
         } else { 
+            printf("Client is requesting a tile\n");
             double x;
             double y;
-            double z;
+            int z;
 
-            sscanf(url, "/tile_x-%lf_y%lf_z%lf.bmp", &x, &y, &z);
+            sscanf(url, "/tile_x-%lf_y%lf_z%d.bmp", &x, &y, &z);
 
-            printf("x: %lf, y:%lf, zoom: %lf\n\n", x, y, z); 
-
-            // print entire request to the console
-            printf(" *** Received http request ***\n %s\n", request);
-
-            //send the browser a simple html page using http
-            printf(" *** Sending http response ***\n");
+            printf("x: %lf, y:%lf, zoom: %d\n\n", x, y, z); 
+    
             serveBMP(connectionSocket); 
         }
 
