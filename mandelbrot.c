@@ -73,13 +73,30 @@ int main(int argc, char *argv[]) {
         bytesRead = read(connectionSocket, request, (sizeof request) - 1);
         assert(bytesRead >= 0);
         // were we able to read any data from the connection?
+        
+        // harrison's magical URL grepper code
+        char url[1024];
+        sscanf(request, "GET %s HTTP/1.1\n", url);
+        printf("\n%s\n", url);
+        
+        if (strcmp(url, "/" ) == 0) {
+            serveHTML(connectionSocket);
+        } else { 
+            double x;
+            double y;
+            double z;
 
-        // print entire request to the console
-        printf(" *** Received http request ***\n %s\n", request);
+            sscanf(url, "/tile_x-%lf_y%lf_z%lf.bmp", &x, &y, &z);
 
-        //send the browser a simple html page using http
-        printf(" *** Sending http response ***\n");
-        serveBMP(connectionSocket);
+            printf("x: %lf, y:%lf, zoom: %lf\n\n", x, y, z); 
+
+            // print entire request to the console
+            printf(" *** Received http request ***\n %s\n", request);
+
+            //send the browser a simple html page using http
+            printf(" *** Sending http response ***\n");
+            serveBMP(connectionSocket); 
+        }
 
         // close the connection after sending the page- keep aust beautiful
         close(connectionSocket);
@@ -92,7 +109,6 @@ int main(int argc, char *argv[]) {
     close(serverSocket);
 
     return EXIT_SUCCESS;
-    serveHTML(serverSocket);
 }
 
 int escapeSteps(double x, double y) {
