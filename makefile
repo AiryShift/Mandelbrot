@@ -1,5 +1,5 @@
 all:
-	gcc -Wall -Werror -O -o server bmpServer.c
+	gcc -Wall -Werror -O -o server mandelbrot.c
 	./server
 
 test:
