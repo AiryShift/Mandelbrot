@@ -29,7 +29,7 @@ static double square(double x);
 #define NUMBER_OF_PAGES_TO_SERVE 10 // server halts after serving this
 
 static void serveHTML(int socket);
-static void serveBMP(int socket);
+static void serveBMP(int socket, complex imageCenter);
 static int makeServerSocket(int portno);
 static int waitForConnection(int serverSocket);
 
@@ -47,7 +47,7 @@ static int waitForConnection(int serverSocket);
 #define SIZE 512
 #define TOTAL_NUM_BYTES (SIZE*SIZE*BYTES_PER_PIXEL)
 
-void writeHeader(FILE *file);
+void writeHeader(int socket);
 
 int main(int argc, char *argv[]) {
     printf("************************************\n");
@@ -163,16 +163,16 @@ static void serveHTML(int socket) {
         "Content-Type: text/html\n"
         "\n";
     printf("about to send=> %s\n", message);
-    write(socket, message, strlen(message));
+    write(socket, &message, strlen(message));
 
     message =
         "<!DOCTYPE html>\n"
         "<script src=\"http://almondbread.cse.unsw.edu.au/tiles.js\"></script>"
         "\n";
-    write(socket, message, strlen(message));
+    write(socket, &message, strlen(message));
 }
 
-static void serveBMP(int socket) {
+static void serveBMP(int socket, complex imageCenter) {
     char* message;
 
     // first send the http response header
@@ -180,24 +180,12 @@ static void serveBMP(int socket) {
               "Content-Type: image/bmp\n"
               "\n";
     printf("about to send=> %s\n", message);
-    write(socket, message, strlen(message));
+    write(socket, &message, strlen(message));
 
-    // now send the BMP
-    unsigned char bmp[] = {
-        0x42,0x4d,0x5a,0x00,0x00,0x00,0x00,0x00,
-        0x00,0x00,0x36,0x00,0x00,0x00,0x28,0x00,
-        0x00,0x00,0x03,0x00,0x00,0x00,0x03,0x00,
-        0x00,0x00,0x01,0x00,0x18,0x00,0x00,0x00,
-        0x00,0x00,0x24,0x00,0x00,0x00,0x13,0x0b,
-        0x00,0x00,0x13,0x0b,0x00,0x00,0x00,0x00,
-        0x00,0x00,0x00,0x00,0x00,0x00,0x07,0x07,
-        0xff,0x07,0x07,0x07,0x07,0x07,0xff,0x00,
-        0x00,0x0e,0x07,0x07,0x07,0x66,0x07,0x07,
-        0x07,0x07,0x07,0x00,0x00,0x0d,0x07,0x07,
-        0x07,0x07,0x07,0x07,0xff,0xff,0xff,0x00,
-        0x00,0x0d};
+    writeHeader(socket);
+    unsigned char bmp[TOTAL_NUM_BYTES];
 
-    write(socket, bmp, sizeof(bmp));
+    write(socket, &bmp, sizeof(bmp));
 }
 
 // start the server listening on the specified port number
@@ -261,49 +249,49 @@ static int waitForConnection(int serverSocket) {
     return(connectionSocket);
 }
 
-void writeHeader(FILE *file) {
+void writeHeader(int socket) {
     unsigned short magicNumber = MAGIC_NUMBER;
-    fwrite(&magicNumber, sizeof magicNumber, 1, file);
+    write(socket, &magicNumber, sizeof(magicNumber));
 
     unsigned int fileSize = OFFSET + (SIZE * SIZE * BYTES_PER_PIXEL);
-    fwrite(&fileSize, sizeof fileSize, 1, file);
+    write(socket, &fileSize, sizeof(fileSize));
 
     unsigned int reserved = 0;
-    fwrite(&reserved, sizeof reserved, 1, file);
+    write(socket, &reserved, sizeof(reserved));
 
     unsigned int offset = OFFSET;
-    fwrite(&offset, sizeof offset, 1, file);
+    write(socket, &offset, sizeof(offset));
 
     unsigned int dibHeaderSize = DIB_HEADER_SIZE;
-    fwrite(&dibHeaderSize, sizeof dibHeaderSize, 1, file);
+    write(socket, &dibHeaderSize, sizeof(dibHeaderSize));
 
     unsigned int width = SIZE;
-    fwrite(&width, sizeof width, 1, file);
+    write(socket, &width, sizeof(width));
 
     unsigned int height = SIZE;
-    fwrite(&height, sizeof height, 1, file);
+    write(socket, &height, sizeof(height));
 
     unsigned short planes = NUMBER_PLANES;
-    fwrite(&planes, sizeof planes, 1, file);
+    write(socket, &planes, sizeof(planes));
 
     unsigned short bitsPerPixel = BITS_PER_PIXEL;
-    fwrite(&bitsPerPixel, sizeof bitsPerPixel, 1, file);
+    write(socket, &bitsPerPixel, sizeof(bitsPerPixel));
 
     unsigned int compression = NO_COMPRESSION;
-    fwrite(&compression, sizeof compression, 1, file);
+    write(socket, &compression, sizeof(compression));
 
     unsigned int imageSize = (SIZE * SIZE * BYTES_PER_PIXEL);
-    fwrite(&imageSize, sizeof imageSize, 1, file);
+    write(socket, &imageSize, sizeof(imageSize));
 
     unsigned int hResolution = PIX_PER_METRE;
-    fwrite(&hResolution, sizeof hResolution, 1, file);
+    write(socket, &hResolution, sizeof(hResolution));
 
     unsigned int vResolution = PIX_PER_METRE;
-    fwrite(&vResolution, sizeof vResolution, 1, file);
+    write(socket, &vResolution, sizeof(vResolution));
 
     unsigned int numColors = NUM_COLORS;
-    fwrite(&numColors, sizeof numColors, 1, file);
+    write(socket, &numColors, sizeof(numColors));
 
     unsigned int importantColors = NUM_COLORS;
-    fwrite(&importantColors, sizeof importantColors, 1, file);
+    write(socket, &importantColors, sizeof(importantColors));
 }
