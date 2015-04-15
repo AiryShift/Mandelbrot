@@ -247,52 +247,49 @@ static int waitForConnection(int serverSocket) {
     return(connectionSocket);
 }
 
-static void writeHeader(void) {
-    // From chessboard activity
-    /*
+void writeHeader(FILE *file) {
     unsigned short magicNumber = MAGIC_NUMBER;
-    printf("% \n", magicNumber);
+    fwrite(&magicNumber, sizeof magicNumber, 1, file);
 
     unsigned int fileSize = OFFSET + (SIZE * SIZE * BYTES_PER_PIXEL);
-    printf("% \n", fileSize);
+    fwrite(&fileSize, sizeof fileSize, 1, file);
 
     unsigned int reserved = 0;
-    printf("% \n", reserved);
+    fwrite(&reserved, sizeof reserved, 1, file);
 
     unsigned int offset = OFFSET;
-    printf("% \n", offset);
+    fwrite(&offset, sizeof offset, 1, file);
 
     unsigned int dibHeaderSize = DIB_HEADER_SIZE;
-    printf("% \n", dibHeaderSize);
+    fwrite(&dibHeaderSize, sizeof dibHeaderSize, 1, file);
 
     unsigned int width = SIZE;
-    printf("% \n", width);
+    fwrite(&width, sizeof width, 1, file);
 
     unsigned int height = SIZE;
-    printf("% \n", height);
+    fwrite(&height, sizeof height, 1, file);
 
     unsigned short planes = NUMBER_PLANES;
-    printf("% \n", planes);
+    fwrite(&planes, sizeof planes, 1, file);
 
     unsigned short bitsPerPixel = BITS_PER_PIXEL;
-    printf("% \n", bitsPerPixel);
+    fwrite(&bitsPerPixel, sizeof bitsPerPixel, 1, file);
 
     unsigned int compression = NO_COMPRESSION;
-    printf("% \n", compression);
+    fwrite(&compression, sizeof compression, 1, file);
 
     unsigned int imageSize = (SIZE * SIZE * BYTES_PER_PIXEL);
-    printf("% \n", imageSize);
+    fwrite(&imageSize, sizeof imageSize, 1, file);
 
     unsigned int hResolution = PIX_PER_METRE;
-    printf("% \n", hResolution);
+    fwrite(&hResolution, sizeof hResolution, 1, file);
 
     unsigned int vResolution = PIX_PER_METRE;
-    printf("% \n", vResolution);
+    fwrite(&vResolution, sizeof vResolution, 1, file);
 
     unsigned int numColors = NUM_COLORS;
-    printf("% \n", numColors);
+    fwrite(&numColors, sizeof numColors, 1, file);
 
     unsigned int importantColors = NUM_COLORS;
-    printf("% \n", importantColors);
-    */
+    fwrite(&importantColors, sizeof importantColors, 1, file);
 }
