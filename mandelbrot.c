@@ -4,7 +4,6 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
-#include <math.h>
 #include "mandelbrot.h"
 
 // escapeSteps
@@ -48,7 +47,7 @@ static int waitForConnection(int serverSocket);
 #define SIZE 512
 #define TOTAL_NUM_BYTES (SIZE*SIZE*BYTES_PER_PIXEL)
 
-static void writeHeader(void);
+void writeHeader(FILE *file);
 
 int main(int argc, char *argv[]) {
     printf("************************************\n");
@@ -93,6 +92,7 @@ int main(int argc, char *argv[]) {
     close(serverSocket);
 
     return EXIT_SUCCESS;
+    serveHTML(serverSocket);
 }
 
 int escapeSteps(double x, double y) {
@@ -109,7 +109,7 @@ int escapeSteps(double x, double y) {
 
 static int isBounded(complex num) {
     int bounded = 1;
-    if (distanceFromOrigin(num) >= ESCAPE_DISTANCE) {
+    if (distanceFromOrigin(num) >= ESCAPE_DISTANCE * ESCAPE_DISTANCE) {
         bounded = 0;
     }
     return bounded;
@@ -117,7 +117,7 @@ static int isBounded(complex num) {
 
 static double distanceFromOrigin(complex num) {
     // Distance formula
-    return sqrt(square(num.real) + square(num.imaginary));
+    return square(num.real) + square(num.imaginary);
 }
 
 static complex nextTerm(complex num, complex initial) {
@@ -137,7 +137,7 @@ static complex complexSquare(complex num) {
 }
 
 static double square(double x) {
-    return pow(x, 2);
+    return x * x;
 }
 
 static void serveHTML(int socket) {
