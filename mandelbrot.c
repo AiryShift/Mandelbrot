@@ -72,10 +72,10 @@ int main(int argc, char *argv[]) {
         // were we able to read any data from the connection?
 
         // print entire request to the console
-        printf(" *** Received http request ***\n %s\n", request);
+        printf("*** Received http request ***\n %s\n", request);
 
         //send the browser a simple html page using http
-        printf(" *** Sending http response ***\n");
+        printf("*** Sending http response ***\n");
    
         // harrison's magical URL grepper code
         char url[1024];
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
             double y;
             int z;
 
-            sscanf(url, "/tile_x-%lf_y%lf_z%d.bmp", &x, &y, &z);
+            sscanf(url, "/tile_x%lf_y%lf_z%d.bmp", &x, &y, &z);
 
             printf("x: %lf, y:%lf, zoom: %d\n\n", x, y, z); 
     
