@@ -4,6 +4,8 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include "pixelColor.h"
+#include "pixelColor.c"
 #include "mandelbrot.h"
 
 // escapeSteps
@@ -16,22 +18,27 @@ typedef struct _complex {
     double imaginary;
 } complex;
 
-static int isBounded(complex num);
-static double distanceFromOrigin(complex num);
-static complex nextTerm(complex num, complex initial);
-static complex complexSquare(complex num);
-static double square(double x);
+typedef struct _coordinate {
+    int xPos;
+    int yPos;
+} coordinate;
+
+int isBounded(complex num);
+double distanceFromOrigin(complex num);
+complex nextTerm(complex num, complex initial);
+complex complexSquare(complex num);
+double square(double x);
+int twoToThePowerOf(int exponent);
 
 // Server
 #define SIMPLE_SERVER_VERSION 1.0
 #define REQUEST_BUFFER_SIZE 1000
 #define DEFAULT_PORT 1917
-#define NUMBER_OF_PAGES_TO_SERVE 10 // server halts after serving this
 
-static void serveHTML(int socket);
-static void serveBMP(int socket, complex imageCenter);
-static int makeServerSocket(int portno);
-static int waitForConnection(int serverSocket);
+void serveHTML(int socket);
+void serveBMP(int socket, complex imageCenter, int zoom);
+int makeServerSocket(int portno);
+int waitForConnection(int serverSocket);
 
 // BMP
 #define BYTES_PER_PIXEL 3
@@ -48,6 +55,8 @@ static int waitForConnection(int serverSocket);
 #define TOTAL_NUM_BYTES (SIZE*SIZE*BYTES_PER_PIXEL)
 
 void writeHeader(int socket);
+complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom);
+void writePixel(int socket, int stepsTaken);
 
 int main(int argc, char *argv[]) {
     printf("************************************\n");
@@ -76,16 +85,16 @@ int main(int argc, char *argv[]) {
 
         //send the browser a simple html page using http
         printf("*** Sending http response ***\n");
-   
+
         // harrison's magical URL grepper code
         char url[1024];
         sscanf(request, "GET %s HTTP/1", url);
         printf("\n%s\n", url);
-        
+
         if (strcmp(url, "/" ) == 0) {
             printf("Client is requesting the home page\n");
             serveHTML(connectionSocket);
-        } else { 
+        } else {
             printf("Client is requesting a tile (%s)\n", url);
             double x;
             double y;
@@ -93,16 +102,22 @@ int main(int argc, char *argv[]) {
 
             sscanf(url, "/tile_x%lf_y%lf_z%d.bmp", &x, &y, &z);
 
-            printf("x: %lf, y:%lf, zoom: %d\n\n", x, y, z); 
-    
-            serveBMP(connectionSocket); 
+            printf("x: %lf, y:%lf, zoom: %d\n\n", x, y, z);
+
+            // print entire request to the console
+            printf(" *** Received http request ***\n %s\n", request);
+
+            // send the browser a simple html page using http
+            printf(" *** Sending http response ***\n");
+            complex center = {x, y};
+            serveBMP(connectionSocket, center, z);
         }
 
-        // close the connection after sending the page- keep aust beautiful
+        // close the connection after sending the page
         close(connectionSocket);
     }
 
-    // close the server connection after we are done- keep aust beautiful
+    // close the server connection after we are done
     printf("** shutting down the server **\n");
     close(serverSocket);
 
@@ -121,7 +136,7 @@ int escapeSteps(double x, double y) {
     return iterations;
 }
 
-static int isBounded(complex num) {
+int isBounded(complex num) {
     int bounded = 1;
     if (distanceFromOrigin(num) >= ESCAPE_DISTANCE * ESCAPE_DISTANCE) {
         bounded = 0;
@@ -129,19 +144,19 @@ static int isBounded(complex num) {
     return bounded;
 }
 
-static double distanceFromOrigin(complex num) {
+double distanceFromOrigin(complex num) {
     // Distance formula
     return square(num.real) + square(num.imaginary);
 }
 
-static complex nextTerm(complex num, complex initial) {
+complex nextTerm(complex num, complex initial) {
     num = complexSquare(num);
     num.real += initial.real;
     num.imaginary += initial.imaginary;
     return num;
 }
 
-static complex complexSquare(complex num) {
+complex complexSquare(complex num) {
     // The square of a complex number resolves to:
     // (x + yi)**2 = (x**2 - y**2) + (2xy)i
     complex temp = num;
@@ -150,11 +165,21 @@ static complex complexSquare(complex num) {
     return num;
 }
 
-static double square(double x) {
+int twoToThePowerOf(int exponent) { // Name pending
+    int i = 0;
+    int result = 1;
+    while (i < exponent) {
+        result *= 2;
+        i++;
+    }
+    return result;
+}
+
+double square(double x) {
     return x * x;
 }
 
-static void serveHTML(int socket) {
+void serveHTML(int socket) {
     char* message;
 
     // first send the http response header
@@ -167,14 +192,14 @@ static void serveHTML(int socket) {
 
     message =
         "<!DOCTYPE html>\n"
-        "<script src=\"http://almondbread.cse.unsw.edu.au/tiles.js\"></script>"
+        "<script src=\"http://almondbread.cse.unsw.edu.au/tiles.js\">"
+        "</script>"
         "\n";
     write(socket, &message, strlen(message));
 }
 
-static void serveBMP(int socket, complex imageCenter) {
+void serveBMP(int socket, complex imageCenter, int zoom) {
     char* message;
-
     // first send the http response header
     message = "HTTP/1.0 200 OK\n"
               "Content-Type: image/bmp\n"
@@ -182,14 +207,47 @@ static void serveBMP(int socket, complex imageCenter) {
     printf("about to send=> %s\n", message);
     write(socket, &message, strlen(message));
 
+    // Writing the BMP
     writeHeader(socket);
-    unsigned char bmp[TOTAL_NUM_BYTES];
 
-    write(socket, &bmp, sizeof(bmp));
+    int bytesWritten = 0;
+    coordinate curPos = {0, 0};
+    double distanceBetweenPixels = 1 / twoToThePowerOf(zoom);
+
+    while (bytesWritten < TOTAL_NUM_BYTES) {
+        complex modifyingPoint = findPixelCenter(imageCenter, curPos, distanceBetweenPixels);
+        int stepsTaken = escapeSteps(modifyingPoint.real, modifyingPoint.imaginary);
+        writePixel(socket, stepsTaken);
+
+        bytesWritten += BYTES_PER_PIXEL;
+        curPos.xPos++;
+        if (curPos.xPos == SIZE) {
+            curPos.xPos = 0;
+            curPos.yPos++;
+        }
+    }
+}
+
+complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom) {
+    complex center;
+    center.real = imageCenter.real + (curPos.xPos - 0.5) * zoom;
+    center.imaginary= imageCenter.imaginary + (curPos.yPos - 0.5) * zoom;
+    return center;
+}
+
+void writePixel(int socket, int stepsTaken) {
+    unsigned char redValue = stepsToBlue(stepsTaken);
+    write(socket, &redValue, sizeof(redValue));
+
+    unsigned char blueValue = stepsToGreen(stepsTaken);
+    write(socket, &blueValue, sizeof(blueValue));
+
+    unsigned char greenValue = stepsToRed(stepsTaken);
+    write(socket, &greenValue, sizeof(greenValue));
 }
 
 // start the server listening on the specified port number
-static int makeServerSocket(int portNumber) {
+int makeServerSocket(int portNumber) {
     // create socket
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -229,7 +287,7 @@ static int makeServerSocket(int portNumber) {
 
 // wait for a browser to request a connection,
 // returns the socket on which the conversation will take place
-static int waitForConnection(int serverSocket) {
+int waitForConnection(int serverSocket) {
     // listen for a connection
     const int serverMaxBacklog = 10;
     listen(serverSocket, serverMaxBacklog);
