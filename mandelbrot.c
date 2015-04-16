@@ -51,8 +51,8 @@ void writeHeader(FILE *file);
 
 int main(int argc, char *argv[]) {
     printf("************************************\n");
-    printf("Starting simple server %f\n", SIMPLE_SERVER_VERSION);
-    printf("Serving bmps since 2012\n");
+    printf("Starting mandelbrot server %f\n", SIMPLE_SERVER_VERSION);
+    printf("Serving mandelbrot since 2015\n");
 
     int serverSocket = makeServerSocket(DEFAULT_PORT);
     printf("Access this server at http://localhost:%d/\n", DEFAULT_PORT);
@@ -60,10 +60,7 @@ int main(int argc, char *argv[]) {
 
     char request[REQUEST_BUFFER_SIZE];
 
-    int numberServed = 0;
-    while (numberServed < NUMBER_OF_PAGES_TO_SERVE) {
-        printf ("*** So far served %d pages ***\n", numberServed);
-
+    while (1) {
         int connectionSocket = waitForConnection(serverSocket);
         // wait for a request to be sent from a web browser, open a new
         // connection for this conversation
@@ -82,14 +79,14 @@ int main(int argc, char *argv[]) {
    
         // harrison's magical URL grepper code
         char url[1024];
-        sscanf(request, "GET %s HTTP/1.1\n", url);
+        sscanf(request, "GET %s HTTP/1", url);
         printf("\n%s\n", url);
         
         if (strcmp(url, "/" ) == 0) {
             printf("Client is requesting the home page\n");
             serveHTML(connectionSocket);
         } else { 
-            printf("Client is requesting a tile\n");
+            printf("Client is requesting a tile (%s)\n", url);
             double x;
             double y;
             int z;
@@ -103,8 +100,6 @@ int main(int argc, char *argv[]) {
 
         // close the connection after sending the page- keep aust beautiful
         close(connectionSocket);
-
-        numberServed++;
     }
 
     // close the server connection after we are done- keep aust beautiful
