@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <unistd.h>
 #include "pixelColor.h"
-#include "pixelColor.c"
 #include "mandelbrot.h"
 
 // escapeSteps
@@ -91,7 +90,7 @@ int main(int argc, char *argv[]) {
         sscanf(request, "GET %s HTTP/1", url);
         printf("\n%s\n", url);
 
-        if (strcmp(url, "/" ) == 0) {
+        if (strcmp(url, "/") == 0) {
             printf("Client is requesting the home page\n");
             serveHTML(connectionSocket);
         } else {
@@ -102,13 +101,13 @@ int main(int argc, char *argv[]) {
 
             sscanf(url, "/tile_x%lf_y%lf_z%d.bmp", &x, &y, &z);
 
-            printf("x: %lf, y:%lf, zoom: %d\n\n", x, y, z);
+            printf("x: %lf, y: %lf, zoom: %d\n\n", x, y, z);
 
             // print entire request to the console
-            printf(" *** Received http request ***\n %s\n", request);
+            printf("*** Received http request ***\n%s\n", request);
 
             // send the browser a simple html page using http
-            printf(" *** Sending http response ***\n");
+            printf("*** Sending http response ***\n");
             complex center = {x, y};
             serveBMP(connectionSocket, center, z);
         }
@@ -138,7 +137,7 @@ int escapeSteps(double x, double y) {
 
 int isBounded(complex num) {
     int bounded = 1;
-    if (distanceFromOrigin(num) >= ESCAPE_DISTANCE * ESCAPE_DISTANCE) {
+    if (distanceFromOrigin(num) >= square(ESCAPE_DISTANCE)) {
         bounded = 0;
     }
     return bounded;
@@ -229,9 +228,12 @@ void serveBMP(int socket, complex imageCenter, int zoom) {
 }
 
 complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom) {
+    curPos.xPos += 255;
+    curPos.yPos += 255;
+
     complex center;
     center.real = imageCenter.real + (curPos.xPos - 0.5) * zoom;
-    center.imaginary= imageCenter.imaginary + (curPos.yPos - 0.5) * zoom;
+    center.imaginary = imageCenter.imaginary + (curPos.yPos - 0.5) * zoom;
     return center;
 }
 

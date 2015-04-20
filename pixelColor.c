@@ -3,14 +3,11 @@
  */
 
 unsigned char stepsToRed(int steps) {
-    // Some algorithm
-    return 0;
+    return 255 - steps;
 }
 unsigned char stepsToGreen(int steps) {
-    // Some algorithm
-    return 0;
+    return 255 - steps;
 }
 unsigned char stepsToBlue(int steps) {
-    // Some algorithm
-    return 0;
+    return 255 - steps;
 }
