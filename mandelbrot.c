@@ -236,14 +236,14 @@ complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom) {
 }
 
 void writePixel(int socket, int stepsTaken) {
-    unsigned char redValue = stepsToBlue(stepsTaken);
-    write(socket, &redValue, sizeof(redValue));
-
-    unsigned char blueValue = stepsToGreen(stepsTaken);
+    unsigned char blueValue = stepsToBlue(stepsTaken);
     write(socket, &blueValue, sizeof(blueValue));
 
-    unsigned char greenValue = stepsToRed(stepsTaken);
+    unsigned char greenValue = stepsToGreen(stepsTaken);
     write(socket, &greenValue, sizeof(greenValue));
+
+    unsigned char redValue = stepsToRed(stepsTaken);
+    write(socket, &redValue, sizeof(redValue));
 }
 
 // start the server listening on the specified port number
