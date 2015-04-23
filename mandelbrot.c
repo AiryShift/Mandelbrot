@@ -27,7 +27,7 @@ double distanceFromOrigin(complex num);
 complex nextTerm(complex num, complex initial);
 complex complexSquare(complex num);
 double square(double x);
-int twoToThePowerOf(int exponent);
+double twoToThePowerOf(int exponent);
 
 // Server
 #define SIMPLE_SERVER_VERSION 1.0
@@ -164,9 +164,9 @@ complex complexSquare(complex num) {
     return num;
 }
 
-int twoToThePowerOf(int exponent) { // Name pending
+double twoToThePowerOf(int exponent) { // Name pending
     int i = 0;
-    int result = 1;
+    double result = 1;
     while (i < exponent) {
         result *= 2;
         i++;
