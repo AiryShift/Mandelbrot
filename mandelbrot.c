@@ -209,7 +209,7 @@ void serveBMP(int socket, complex imageCenter, int zoom) {
     // Writing the BMP
     writeHeader(socket);
 
-    int bytesWritten = 0;
+    unsigned long bytesWritten = 0;
     coordinate curPos = {0, 0};
     double distanceBetweenPixels = 1 / twoToThePowerOf(zoom);
 
