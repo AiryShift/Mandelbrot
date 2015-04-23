@@ -3,11 +3,11 @@
  */
 
 unsigned char stepsToRed(int steps) {
-    return 255 - steps;
+    return steps;
 }
 unsigned char stepsToGreen(int steps) {
-    return 255 - steps;
+    return steps;
 }
 unsigned char stepsToBlue(int steps) {
-    return 255 - steps;
+    return steps;
 }
