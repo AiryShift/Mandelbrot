@@ -1,3 +1,5 @@
+#include "pixelcolor.h"
+// Domain of steps: 1 <= steps <= 256
 unsigned char stepsToRed(int steps) {
     return steps - 1;
 }
