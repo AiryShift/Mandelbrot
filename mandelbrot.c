@@ -10,7 +10,7 @@
 // escapeSteps
 #define MIN_ITERATIONS 1
 #define MAX_ITERATIONS 256
-#define ESCAPE_DISTANCE 2
+#define ESCAPE_DISTANCE_SQUARED 4
 
 typedef struct _complex {
     double real;
@@ -23,7 +23,7 @@ typedef struct _coordinate {
 } coordinate;
 
 int isBounded(complex num);
-double distanceFromOrigin(complex num);
+double distanceFromOriginSquared(complex num);
 complex nextTerm(complex num, complex initial);
 complex complexSquare(complex num);
 double square(double x);
@@ -33,6 +33,7 @@ double twoToThePowerOf(int exponent);
 #define SIMPLE_SERVER_VERSION 1.0
 #define REQUEST_BUFFER_SIZE 1000
 #define DEFAULT_PORT 1917
+#define SIZEOF_URL 1024
 
 void serveHTML(int socket);
 void serveBMP(int socket, complex imageCenter, int zoom);
@@ -86,25 +87,24 @@ int main(int argc, char *argv[]) {
         printf("*** Sending http response ***\n");
 
         // harrison's magical URL grepper code
-        char url[1024];
+        char url[SIZEOF_URL];
         sscanf(request, "GET %s HTTP/1", url);
         printf("\n%s\n", url);
+
+        // print entire request to the console
+        printf("*** Received http request ***\n%s\n", request);
 
         if (strcmp(url, "/") == 0) {
             printf("Client is requesting the home page\n");
             serveHTML(connectionSocket);
         } else {
             printf("Client is requesting a tile (%s)\n", url);
-            double x;
-            double y;
+            double x, y;
             int z;
 
             sscanf(url, "/tile_x%lf_y%lf_z%d.bmp", &x, &y, &z);
 
             printf("x: %lf, y: %lf, zoom: %d\n\n", x, y, z);
-
-            // print entire request to the console
-            printf("*** Received http request ***\n%s\n", request);
 
             // send the browser a simple html page using http
             printf("*** Sending http response ***\n");
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
 int escapeSteps(double x, double y) {
     complex initialValue = {x, y};
     complex workingCopy = initialValue;
-    int iterations = MIN_ITERATIONS; // Mandelbrot assumes this
+    int iterations = MIN_ITERATIONS;
 
     while (isBounded(workingCopy) && iterations < MAX_ITERATIONS) {
         workingCopy = nextTerm(workingCopy, initialValue);
@@ -136,15 +136,10 @@ int escapeSteps(double x, double y) {
 }
 
 int isBounded(complex num) {
-    int bounded = 1;
-    if (distanceFromOrigin(num) >= square(ESCAPE_DISTANCE)) {
-        bounded = 0;
-    }
-    return bounded;
+    return (distanceFromOriginSquared(num) < ESCAPE_DISTANCE_SQUARED);
 }
 
-double distanceFromOrigin(complex num) {
-    // Distance formula
+double distanceFromOriginSquared(complex num) {
     return square(num.real) + square(num.imaginary);
 }
 
@@ -164,7 +159,7 @@ complex complexSquare(complex num) {
     return num;
 }
 
-double twoToThePowerOf(int exponent) { // Name pending
+double twoToThePowerOf(int exponent) {
     int i = 0;
     double result = 1;
     while (i < exponent) {
@@ -200,6 +195,7 @@ void serveHTML(int socket) {
 
 void serveBMP(int socket, complex imageCenter, int zoom) {
     char* message;
+
     // first send the http response header
     message = "HTTP/1.0 200 OK\r\n"
               "Content-Type: image/bmp\r\n"
@@ -207,16 +203,18 @@ void serveBMP(int socket, complex imageCenter, int zoom) {
     printf("about to send=> %s\n", message);
     write(socket, message, strlen(message));
 
-    // Writing the BMP
+    // Send BMP header
     writeHeader(socket);
 
+    // Send BMP content
     unsigned long bytesWritten = 0;
     coordinate curPos = {0, 0};
     double distanceBetweenPixels = 1 / twoToThePowerOf(zoom);
+    printf("distanceBetweenPixels: %lf\n", distanceBetweenPixels);
 
     while (bytesWritten < TOTAL_NUM_BYTES) {
-        complex modifyingPoint = findPixelCenter(imageCenter, curPos, distanceBetweenPixels);
-        int stepsTaken = escapeSteps(modifyingPoint.real, modifyingPoint.imaginary);
+        complex pixelCenter = findPixelCenter(imageCenter, curPos, distanceBetweenPixels);
+        int stepsTaken = escapeSteps(pixelCenter.real, pixelCenter.imaginary);
         writePixel(socket, stepsTaken);
 
         bytesWritten += BYTES_PER_PIXEL;
@@ -229,8 +227,8 @@ void serveBMP(int socket, complex imageCenter, int zoom) {
 }
 
 complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom) {
-    curPos.xPos += 255;
-    curPos.yPos += 255;
+    curPos.xPos -= SIZE / 2;
+    curPos.yPos -= SIZE / 2;
 
     complex center;
     center.real = imageCenter.real + (curPos.xPos - 0.5) * zoom;
@@ -301,7 +299,7 @@ int waitForConnection(int serverSocket) {
     int connectionSocket =
         accept(
             serverSocket,
-           (struct sockaddr *) &clientAddress,
+            (struct sockaddr *) &clientAddress,
             &clientLen
         );
 
