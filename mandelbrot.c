@@ -306,48 +306,58 @@ int waitForConnection(int serverSocket) {
 }
 
 void writeHeader(int socket) {
-    unsigned short magicNumber = MAGIC_NUMBER;
-    write(socket, &magicNumber, sizeof(magicNumber));
+    unsigned char header[] = { // DIB header of 512x512 BMP
+        0x42, 0x4D, 0x36, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x36, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x00, 0x02,
+        0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x01, 0x00, 0x18, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00, 0x13, 0x0B,
+        0x00, 0x00, 0x13, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+    };
+    write(socket, header, sizeof(header));
 
-    unsigned int fileSize = OFFSET + (SIZE * SIZE * BYTES_PER_PIXEL);
-    write(socket, &fileSize, sizeof(fileSize));
+    // unsigned short magicNumber = MAGIC_NUMBER;
+    // write(socket, &magicNumber, sizeof(magicNumber));
 
-    unsigned int reserved = 0;
-    write(socket, &reserved, sizeof(reserved));
+    // unsigned int fileSize = OFFSET + (SIZE * SIZE * BYTES_PER_PIXEL);
+    // write(socket, &fileSize, sizeof(fileSize));
 
-    unsigned int offset = OFFSET;
-    write(socket, &offset, sizeof(offset));
+    // unsigned int reserved = 0;
+    // write(socket, &reserved, sizeof(reserved));
 
-    unsigned int dibHeaderSize = DIB_HEADER_SIZE;
-    write(socket, &dibHeaderSize, sizeof(dibHeaderSize));
+    // unsigned int offset = OFFSET;
+    // write(socket, &offset, sizeof(offset));
 
-    unsigned int width = SIZE;
-    write(socket, &width, sizeof(width));
+    // unsigned int dibHeaderSize = DIB_HEADER_SIZE;
+    // write(socket, &dibHeaderSize, sizeof(dibHeaderSize));
 
-    unsigned int height = SIZE;
-    write(socket, &height, sizeof(height));
+    // unsigned int width = SIZE;
+    // write(socket, &width, sizeof(width));
 
-    unsigned short planes = NUMBER_PLANES;
-    write(socket, &planes, sizeof(planes));
+    // unsigned int height = SIZE;
+    // write(socket, &height, sizeof(height));
 
-    unsigned short bitsPerPixel = BITS_PER_PIXEL;
-    write(socket, &bitsPerPixel, sizeof(bitsPerPixel));
+    // unsigned short planes = NUMBER_PLANES;
+    // write(socket, &planes, sizeof(planes));
 
-    unsigned int compression = NO_COMPRESSION;
-    write(socket, &compression, sizeof(compression));
+    // unsigned short bitsPerPixel = BITS_PER_PIXEL;
+    // write(socket, &bitsPerPixel, sizeof(bitsPerPixel));
 
-    unsigned int imageSize = (SIZE * SIZE * BYTES_PER_PIXEL);
-    write(socket, &imageSize, sizeof(imageSize));
+    // unsigned int compression = NO_COMPRESSION;
+    // write(socket, &compression, sizeof(compression));
 
-    unsigned int hResolution = PIX_PER_METRE;
-    write(socket, &hResolution, sizeof(hResolution));
+    // unsigned int imageSize = (SIZE * SIZE * BYTES_PER_PIXEL);
+    // write(socket, &imageSize, sizeof(imageSize));
 
-    unsigned int vResolution = PIX_PER_METRE;
-    write(socket, &vResolution, sizeof(vResolution));
+    // unsigned int hResolution = PIX_PER_METRE;
+    // write(socket, &hResolution, sizeof(hResolution));
 
-    unsigned int numColors = NUM_COLORS;
-    write(socket, &numColors, sizeof(numColors));
+    // unsigned int vResolution = PIX_PER_METRE;
+    // write(socket, &vResolution, sizeof(vResolution));
 
-    unsigned int importantColors = NUM_COLORS;
-    write(socket, &importantColors, sizeof(importantColors));
+    // unsigned int numColors = NUM_COLORS;
+    // write(socket, &numColors, sizeof(numColors));
+
+    // unsigned int importantColors = NUM_COLORS;
+    // write(socket, &importantColors, sizeof(importantColors));
 }
