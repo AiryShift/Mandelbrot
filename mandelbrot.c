@@ -56,7 +56,7 @@ int waitForConnection(int serverSocket);
 
 void writeHeader(int socket);
 complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom);
-void writePixel(int socket, int stepsTaken);
+void writePixel(unsigned char bmp[], int stepsTaken, unsigned long address);
 
 int main(int argc, char *argv[]) {
     printf("************************************\n");
@@ -207,6 +207,7 @@ void serveBMP(int socket, complex imageCenter, int zoom) {
     writeHeader(socket);
 
     // Send BMP content
+    unsigned char bmp[TOTAL_NUM_BYTES];
     unsigned long bytesWritten = 0;
     coordinate curPos = {0, 0};
     double distanceBetweenPixels = 1 / twoToThePowerOf(zoom);
@@ -215,7 +216,7 @@ void serveBMP(int socket, complex imageCenter, int zoom) {
     while (bytesWritten < TOTAL_NUM_BYTES) {
         complex pixelCenter = findPixelCenter(imageCenter, curPos, distanceBetweenPixels);
         int stepsTaken = escapeSteps(pixelCenter.real, pixelCenter.imaginary);
-        writePixel(socket, stepsTaken);
+        writePixel(bmp, stepsTaken, bytesWritten);
 
         bytesWritten += BYTES_PER_PIXEL;
         curPos.xPos++;
@@ -224,6 +225,7 @@ void serveBMP(int socket, complex imageCenter, int zoom) {
             curPos.yPos++;
         }
     }
+    write(socket, bmp, sizeof(bmp));
 }
 
 complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom) {
@@ -236,15 +238,10 @@ complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom) {
     return center;
 }
 
-void writePixel(int socket, int stepsTaken) {
-    unsigned char blueValue = stepsToBlue(stepsTaken);
-    write(socket, &blueValue, sizeof(blueValue));
-
-    unsigned char greenValue = stepsToGreen(stepsTaken);
-    write(socket, &greenValue, sizeof(greenValue));
-
-    unsigned char redValue = stepsToRed(stepsTaken);
-    write(socket, &redValue, sizeof(redValue));
+void writePixel(unsigned char bmp[], int stepsTaken, unsigned long address) {
+    bmp[address] = stepsToBlue(stepsTaken);
+    bmp[address + 1] = stepsToGreen(stepsTaken);
+    bmp[address + 2] = stepsToRed(stepsTaken);
 }
 
 // start the server listening on the specified port number
