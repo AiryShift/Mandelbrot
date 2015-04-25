@@ -183,28 +183,29 @@ void serveHTML(int socket) {
 
     // first send the http response header
     message =
-        "HTTP/1.0 200 Found\n"
-        "Content-Type: text/html\n"
-        "\n";
+        "HTTP/1.0 200 Found\r\n"
+        "Content-Type: text/html\r\n"
+        "\r\n";
     printf("about to send=> %s\n", message);
-    write(socket, &message, strlen(message));
+    write(socket, message, strlen(message));
 
     message =
         "<!DOCTYPE html>\n"
         "<script src=\"http://almondbread.cse.unsw.edu.au/tiles.js\">"
         "</script>"
         "\n";
-    write(socket, &message, strlen(message));
+    printf("now sending=> %s\n", message);
+    write(socket, message, strlen(message));
 }
 
 void serveBMP(int socket, complex imageCenter, int zoom) {
     char* message;
     // first send the http response header
-    message = "HTTP/1.0 200 OK\n"
-              "Content-Type: image/bmp\n"
-              "\n";
+    message = "HTTP/1.0 200 OK\r\n"
+              "Content-Type: image/bmp\r\n"
+              "\r\n";
     printf("about to send=> %s\n", message);
-    write(socket, &message, strlen(message));
+    write(socket, message, strlen(message));
 
     // Writing the BMP
     writeHeader(socket);
