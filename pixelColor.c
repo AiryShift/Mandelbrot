@@ -1,4 +1,4 @@
-#include "pixelcolor.h"
+#include "pixelColor.h"
 
 #define RED {255, 0, 0}
 #define ORANGE {255, 127, 0}
