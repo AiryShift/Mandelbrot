@@ -7,4 +7,8 @@
  *
  */
 
+#ifndef MANDELBROT_H
+#define MANDELBROT_H
 int escapeSteps(double x, double y);
+
+#endif
