@@ -8,9 +8,8 @@
 #include "mandelbrot.h"
 
 // escapeSteps
-#define MIN_ITERATIONS 1
 #define MAX_ITERATIONS 256
-#define ESCAPE_DISTANCE_SQUARED 4
+#define ESCAPE_DISTANCE 2
 
 typedef struct _complex {
     double real;
@@ -26,8 +25,7 @@ int isBounded(complex num);
 double distanceFromOriginSquared(complex num);
 complex nextTerm(complex num, complex initial);
 complex complexSquare(complex num);
-double square(double x);
-double twoToThePowerOf(int exponent);
+double power(double base, int exponent);
 
 // Server
 #define SIMPLE_SERVER_VERSION 1.0
@@ -124,23 +122,19 @@ int main(int argc, char *argv[]) {
 }
 
 int escapeSteps(double x, double y) {
-    complex initialValue = {x, y};
-    complex workingCopy = initialValue;
-    int iterations = MIN_ITERATIONS;
+    complex initial = {x, y};
+    complex current = initial;
+    int iterations = 1;
 
-    while (isBounded(workingCopy) && iterations < MAX_ITERATIONS) {
-        workingCopy = nextTerm(workingCopy, initialValue);
+    while (isBounded(current) && iterations < MAX_ITERATIONS) {
+        current = nextTerm(current, initial);
         iterations++;
     }
     return iterations;
 }
 
 int isBounded(complex num) {
-    return (distanceFromOriginSquared(num) < ESCAPE_DISTANCE_SQUARED);
-}
-
-double distanceFromOriginSquared(complex num) {
-    return square(num.real) + square(num.imag);
+    return (power(num.real, 2) + power(num.imag, 2) < power(ESCAPE_DISTANCE, 2));
 }
 
 complex nextTerm(complex num, complex initial) {
@@ -151,26 +145,20 @@ complex nextTerm(complex num, complex initial) {
 }
 
 complex complexSquare(complex num) {
-    // The square of a complex number resolves to:
-    // (x + yi)**2 = (x**2 - y**2) + (2xy)i
     complex temp = num;
-    num.real = square(temp.real) - square(temp.imag);
+    num.real = power(temp.real, 2) - power(temp.imag, 2);
     num.imag = 2 * temp.real * temp.imag;
     return num;
 }
 
-double twoToThePowerOf(int exponent) {
+double power(double base, int exponent) {
     int i = 0;
     double result = 1;
     while (i < exponent) {
-        result *= 2;
+        result *= base;
         i++;
     }
     return result;
-}
-
-double square(double x) {
-    return x * x;
 }
 
 void serveHTML(int socket) {
@@ -210,7 +198,7 @@ void serveBMP(int socket, complex imageCenter, int zoom) {
     unsigned char bmp[TOTAL_NUM_BYTES];
     unsigned long bytesWritten = 0;
     coordinate curPos = {0, 0};
-    double distanceBetweenPixels = 1 / twoToThePowerOf(zoom);
+    double distanceBetweenPixels = 1 / power(2, zoom);
     printf("distanceBetweenPixels: %lf\n", distanceBetweenPixels);
 
     while (bytesWritten < TOTAL_NUM_BYTES) {
