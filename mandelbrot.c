@@ -14,12 +14,12 @@
 
 typedef struct _complex {
     double real;
-    double imaginary;
+    double imag;
 } complex;
 
 typedef struct _coordinate {
-    int xPos;
-    int yPos;
+    int x;
+    int y;
 } coordinate;
 
 int isBounded(complex num);
@@ -140,13 +140,13 @@ int isBounded(complex num) {
 }
 
 double distanceFromOriginSquared(complex num) {
-    return square(num.real) + square(num.imaginary);
+    return square(num.real) + square(num.imag);
 }
 
 complex nextTerm(complex num, complex initial) {
     num = complexSquare(num);
     num.real += initial.real;
-    num.imaginary += initial.imaginary;
+    num.imag += initial.imag;
     return num;
 }
 
@@ -154,8 +154,8 @@ complex complexSquare(complex num) {
     // The square of a complex number resolves to:
     // (x + yi)**2 = (x**2 - y**2) + (2xy)i
     complex temp = num;
-    num.real = square(temp.real) - square(temp.imaginary);
-    num.imaginary = 2 * temp.real * temp.imaginary;
+    num.real = square(temp.real) - square(temp.imag);
+    num.imag = 2 * temp.real * temp.imag;
     return num;
 }
 
@@ -215,26 +215,26 @@ void serveBMP(int socket, complex imageCenter, int zoom) {
 
     while (bytesWritten < TOTAL_NUM_BYTES) {
         complex pixelCenter = findPixelCenter(imageCenter, curPos, distanceBetweenPixels);
-        int stepsTaken = escapeSteps(pixelCenter.real, pixelCenter.imaginary);
+        int stepsTaken = escapeSteps(pixelCenter.real, pixelCenter.imag);
         writePixel(bmp, stepsTaken, bytesWritten);
 
         bytesWritten += BYTES_PER_PIXEL;
-        curPos.xPos++;
-        if (curPos.xPos == SIZE) {
-            curPos.xPos = 0;
-            curPos.yPos++;
+        curPos.x++;
+        if (curPos.x == SIZE) {
+            curPos.x = 0;
+            curPos.y++;
         }
     }
     write(socket, bmp, sizeof(bmp));
 }
 
 complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom) {
-    curPos.xPos -= SIZE / 2;
-    curPos.yPos -= SIZE / 2;
+    curPos.x -= SIZE / 2;
+    curPos.y -= SIZE / 2;
 
     complex center;
-    center.real = imageCenter.real + (curPos.xPos - 0.5) * zoom;
-    center.imaginary = imageCenter.imaginary + (curPos.yPos - 0.5) * zoom;
+    center.real = imageCenter.real + (curPos.x - 0.5) * zoom;
+    center.imag = imageCenter.imag + (curPos.y - 0.5) * zoom;
     return center;
 }
 
