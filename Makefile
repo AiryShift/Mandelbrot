@@ -1,6 +1,14 @@
-all:
-	gcc -Wall -Werror -O -o server mandelbrot.c pixelColor.c
-	./server
+CC=gcc
+CFLAGS=-Wall -Werror -g -O
+OBJS=mandelbrot.o pixelColor.o
 
-test:
-	gcc -Wall -Werror -O -o server mandelbrotTest.c
+all : $(OBJS)
+	$(CC) -o server $(OBJS)
+
+mandelbrot.o : mandelbrot.c pixelColor.h mandelbrot.h
+pixelColor.o : pixelColor.c pixelColor.h
+
+clean :
+	rm -f server $(OBJS)
+
+.PHONY: clean
