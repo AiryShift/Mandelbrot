@@ -1,5 +1,5 @@
 all:
-	gcc -Wall -Werror -O -o server mandelbrot.c
+	gcc -Wall -Werror -O -o server mandelbrot.c pixelColor.c
 	./server
 
 test:
