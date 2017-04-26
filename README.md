@@ -1,5 +1,5 @@
 # Mandelbrot
-HS1917 2nd Assignment
+__HS1917 2nd Assignment__
 
 ## Pixel Colours
 
