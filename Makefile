@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Werror -g -O
+CFLAGS=-Wall -Werror -g -O -std=gnu89
 OBJS=mandelbrot.o pixelColor.o
 
 all : $(OBJS)

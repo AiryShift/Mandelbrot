@@ -20,3 +20,6 @@ Submit your best images (and the corresponding `pixelColor.c` files) to the Snap
 Put all your mandelbrot and server code including the main function into a file called `mandelbrot.c`, and put your color related functions into a file called `pixelColor.c`.  Both of these .c files should #include `pixelColor.h`, and `mandelbrot.c` should also `#include mandelbrot.h`.  
 
 Implement the function prototypes from the .h files in the correspondingly named .c files.  Make any additional helper functions you write static. Don't change the .h files, we'll use our own copy of the .h files when marking - you'll only submit the two .c files.
+
+## Running
+Compile with `make`. Alternatively, try `gcc -Wall -Werror -O -std=gnu89 -o server mandelbrot.c pixelColor.c`. Run with `./server`.
