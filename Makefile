@@ -1,5 +1,7 @@
+S=512
+
 CC=gcc
-CFLAGS=-Wall -Werror -O3 -std=gnu89
+CFLAGS=-Wall -Werror -O3 -std=gnu89 -D SIZE=$(S) -D SIZESTR='"$(S)"'
 OBJS=mandelbrot.o pixelColor.o
 BIN=server
 

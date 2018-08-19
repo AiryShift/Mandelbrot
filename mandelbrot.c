@@ -52,7 +52,7 @@ int waitForConnection(int serverSocket);
 #define DIB_HEADER_SIZE 40
 #define NUM_COLORS 0
 
-#define SIZE 512
+// SIZE must be cmdline defined
 #define TOTAL_NUM_BYTES (SIZE*SIZE*BYTES_PER_PIXEL)
 
 void writeHeader(int socket);
