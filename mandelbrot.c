@@ -7,9 +7,12 @@
 #include "pixelColor.h"
 #include "mandelbrot.h"
 
+#include "tiles.h"
+
 // escapeSteps
 #define MAX_ITERATIONS 256
 #define ESCAPE_DISTANCE 2
+#define SQUARE(x) ((x) * (x))
 
 typedef struct _complex {
     double real;
@@ -133,30 +136,32 @@ int escapeSteps(double x, double y) {
     return iterations;
 }
 
-int isBounded(complex num) {
-    return (power(num.real, 2) + power(num.imag, 2) < power(ESCAPE_DISTANCE, 2));
+inline int isBounded(complex num) {
+    return SQUARE(num.real) + SQUARE(num.imag) < SQUARE(ESCAPE_DISTANCE);
 }
 
-complex nextTerm(complex num, complex initial) {
+inline complex nextTerm(complex num, complex initial) {
     num = complexSquare(num);
     num.real += initial.real;
     num.imag += initial.imag;
     return num;
 }
 
-complex complexSquare(complex num) {
+inline complex complexSquare(complex num) {
     complex temp = num;
-    num.real = power(temp.real, 2) - power(temp.imag, 2);
+    num.real = SQUARE(temp.real) - SQUARE(temp.imag);
     num.imag = 2 * temp.real * temp.imag;
     return num;
 }
 
 double power(double base, int exponent) {
-    int i = 0;
     double result = 1;
-    while (i < exponent) {
-        result *= base;
-        i++;
+    while (exponent) {
+        if (exponent % 2 != 0) {
+            result *= base;
+        }
+        exponent /= 2;
+        base *= base;
     }
     return result;
 }
@@ -172,13 +177,7 @@ void serveHTML(int socket) {
     printf("about to send=> %s\n", message);
     write(socket, message, strlen(message));
 
-    message =
-        "<!DOCTYPE html>\n"
-        "<script src=\"http://almondbread.cse.unsw.edu.au/tiles.js\">"
-        "</script>"
-        "\n";
-    printf("now sending=> %s\n", message);
-    write(socket, message, strlen(message));
+    write(socket, TILES, strlen(TILES));
 }
 
 void serveBMP(int socket, complex imageCenter, int zoom) {
@@ -226,7 +225,7 @@ complex findPixelCenter(complex imageCenter, coordinate curPos, double zoom) {
     return center;
 }
 
-void writePixel(unsigned char bmp[], int stepsTaken, unsigned long address) {
+inline void writePixel(unsigned char bmp[], int stepsTaken, unsigned long address) {
     bmp[address] = stepsToBlue(stepsTaken);
     bmp[address + 1] = stepsToGreen(stepsTaken);
     bmp[address + 2] = stepsToRed(stepsTaken);
